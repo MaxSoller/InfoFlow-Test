@@ -1,5 +1,7 @@
 plugins {
   id 'java'
+  // Plugin request for plugin already on the classpath must not include a version
+  // id 'org.jastadd' version '1.13.3'      
 }
 
 // jastadd {
@@ -36,6 +38,7 @@ sourceSets.main {
   }
   
   dependencies {
+    // jastadd2 name: "jastadd2"      Doesn't work: "Could not find method jastadd2().."
     implementation project(':IntraJ')
     implementation files('IntraJ/tools/magpiebridge-0.1.6-SNAPSHOT-jar-with-dependencies.jar')
     implementation 'com.sun.net.httpserver:http:20070405'
@@ -45,7 +48,7 @@ sourceSets.main {
 
 compileJava.dependsOn ':IntraJ:build'
 
-task vscode(type: Jar) { 
+task infoflow(type: Jar) { 
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
     from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {

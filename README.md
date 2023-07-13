@@ -19,12 +19,12 @@ Use this command to clone the project with Git:
 
     git clone --recursive <REPOSITORY URL>
 
-The `--recursive` flag makes Git also clone the ExtendJ submodule while cloning
+The `--recursive` flag makes Git also clone the IntraJ submodule while cloning
 the template repository.
 
-To manually clone or update ExtendJ, use these commands:
+To manually clone or update IntraJ, use these commands:
 
-    cd backend-extension-base
+    cd IntraJ
     git submodule init
     git submodule update
 
