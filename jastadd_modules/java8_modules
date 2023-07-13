@@ -1,0 +1,12 @@
+module("IntraJ java8 frontend") {
+	moduleName "IntraJ Java SE 8"
+	moduleVariant "frontend"
+
+	imports "IntraJ java7 frontend"
+
+	jastadd {
+		basedir "../IntraJ/src/jastadd/CFG/java8"
+        include "*.jrag"
+        include "*.ast"
+	}
+}

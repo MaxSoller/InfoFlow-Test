@@ -1,0 +1,12 @@
+module("IntraJ java5 frontend") {
+	moduleName "IntraJ Java SE 5"
+	moduleVariant "frontend"
+
+	imports "IntraJ java4 frontend"
+
+	jastadd {
+		basedir "../IntraJ/src/jastadd/CFG/java5"
+        include "*.jrag"
+        include "*.ast"
+	}
+}

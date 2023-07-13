@@ -1,0 +1,89 @@
+plugins {
+  id 'java'
+}
+
+// jastadd {
+//   configureModuleBuild()
+
+//   modules {
+
+//     module "infoflow", {
+//       jastadd {
+//         basedir "src/jastadd/"
+//         include "**/*.ast"
+//         include "**/*.jadd"
+//         include "**/*.jrag"
+//       }
+//     }
+//   }
+
+//   // Target module to build:
+//   module = 'infoflow'
+//   astPackage = 'org.extendj.ast'
+//   parser.name = 'JavaParser'
+//   scanner.name = 'OriginalScanner'
+// }
+
+sourceSets.main {
+  java {
+    srcDir 'src/java'
+  }
+
+  repositories {
+    mavenLocal()
+    mavenCentral()
+    flatDir { dirs "IntraJ/tools" }
+  }
+  
+  dependencies {
+    implementation project(':IntraJ')
+    implementation files('IntraJ/tools/magpiebridge-0.1.6-SNAPSHOT-jar-with-dependencies.jar')
+    implementation 'com.sun.net.httpserver:http:20070405'
+    implementation group: 'org.freemarker', name: 'freemarker', version: '2.3.29'
+  }
+}
+
+compileJava.dependsOn ':IntraJ:build'
+
+task vscode(type: Jar) { 
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
+        exclude 'META-INF/*.RSA', 'META-INF/*.SF', 'META-INF/*.DSA'
+    }
+    from sourceSets.main.output
+    manifest {
+        attributes 'Main-Class': 'org.extendj.IntraJ'
+    }
+    baseName = 'intraj'
+    destinationDir= file('.')
+}
+
+
+// artifacts {
+//   archives infoflow
+// }
+
+task sourceZip(type: Zip) {
+  description 'Builds a Zip file with the entire repisotory (including the IntraJ submodule).'
+  destinationDirectory = projectDir
+  archiveFileName = "infoflow-src.zip"
+
+  from (projectDir) {
+    exclude '**/.git'
+    exclude '**/.gitignore'
+    exclude '**/.gitattributes'
+    exclude '**/.gitmodules'
+    exclude 'build'
+    exclude 'bin'
+    exclude '.gradle'
+    exclude '.classpath'
+    exclude '.settings'
+    exclude '.project'
+    exclude '*.jar'
+    exclude '*.zip'
+    exclude '**/*.swp'
+  }
+
+  into 'infoflow'
+}

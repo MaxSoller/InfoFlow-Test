@@ -1,0 +1,6 @@
+ include("../IntraJ/extendj/jastadd_modules")
+include("cfg_modules")
+include("java4_modules")
+include("java5_modules")
+include("java7_modules")
+include("java8_modules")

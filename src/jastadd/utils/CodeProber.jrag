@@ -1,0 +1,45 @@
+aspect CodeProberStuff {
+
+    class Diagnostic {
+      Object humanReadable;
+      String diagnostic;
+    
+      public Diagnostic(Object humanReadable, String diagnostic) {
+        this.humanReadable = humanReadable;
+        this.diagnostic = diagnostic;
+      }
+    
+      public Object cpr_getOutput() { return humanReadable; }
+      public String cpr_getDiagnostic() { return diagnostic; }
+    }
+  
+    syn java.util.List<Diagnostic> MethodDecl.showCFG() {
+      java.util.List<Diagnostic> ret = new java.util.ArrayList<>();
+      traverseCFG(entry(), new HashSet<CFGNode>(), ret);
+      return ret;
+    }
+  
+  
+    public void MethodDecl.traverseCFG(CFGNode entry, Set<CFGNode> visited, java.util.List<Diagnostic> ret) {
+  
+      // Line colors
+      String[] colors = {"#0FFF", "#0F07", "#F007", "#F19E", "#FA0C"};
+  
+      CFGNode t = entry;
+      ASTNode node1 = (ASTNode) entry;
+      for (CFGNode n: t.succ()) {
+        ASTNode node2 = (ASTNode) n;
+  
+        // Get a random color from colors
+        String color = colors[(int) (Math.random() * colors.length)];
+       
+        ret.add(new Diagnostic(
+          String.format("Line from %d to %d", node1.getStart(), node2.getStart()),
+          String.format("LINE-PA@%d;%d;%s", node1.getStart(), node2.getStart(), color)
+          ));
+       
+        // Visit the successor of entry
+        traverseCFG(n, visited, ret);
+      }
+    }
+  }
