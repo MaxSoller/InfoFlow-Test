@@ -1,52 +1,81 @@
 plugins {
   id 'java'
   // Plugin request for plugin already on the classpath must not include a version
-  // id 'org.jastadd' version '1.13.3'      
 }
 
-// jastadd {
-//   configureModuleBuild()
+defaultTasks 'jar'
 
-//   modules {
+if (!file('IntraJ/extendj/jastadd_modules').exists()) {
+  throw new GradleException('ExtendJ seems to be missing. Please run "git submodule init", then "git submodule update".')
+}
 
-//     module "infoflow", {
-//       jastadd {
-//         basedir "src/jastadd/"
-//         include "**/*.ast"
-//         include "**/*.jadd"
-//         include "**/*.jrag"
-//       }
-//     }
-//   }
+jastadd {
+  configureModuleBuild()
 
-//   // Target module to build:
-//   module = 'infoflow'
-//   astPackage = 'org.extendj.ast'
-//   parser.name = 'JavaParser'
-//   scanner.name = 'OriginalScanner'
-// }
+  modules {
+    include("jastadd_modules/intraj_modules") // Include core IntraJ and ExtendJ modules.
+    
+    module "infoflow", { 
+      imports "IntraJ java8 frontend" // IntraJ dependency for infoflow module.
+      jastadd {
+        basedir "src/jastadd/"
+        include "**/*.ast"
+        include "**/*.jadd"
+        include "**/*.jrag"
+      }
+    }
+  }
+
+  // Target module to build:
+  module = 'infoflow'
+  jastaddOptions = [ "--rewrite=cnta",
+                     "--safeLazy",
+                     "--visitCheck=false",
+                     "--optimize-imports"]
+  astPackage = 'org.extendj.ast'
+  parser.name = 'JavaParser'
+  scanner.name = 'OriginalScanner'
+}
 
 sourceSets.main {
   java {
+    srcDir 'IntraJ/extendj/src/frontend-main'
     srcDir 'src/java'
   }
-
-  repositories {
-    mavenLocal()
-    mavenCentral()
-    flatDir { dirs "IntraJ/tools" }
+  resources {
+    srcDir 'IntraJ/src/java/magpiebridge/resources'
+    srcDir 'IntraJ/extendj/src/res'
+    srcDir jastadd.buildInfoDir
   }
-  
+  repositories {srcDir jastadd.buildInfoDir
+    mavenLocal()
+    flatDir { dirs "tools" }
+  }
   dependencies {
-    // jastadd2 name: "jastadd2"      Doesn't work: "Could not find method jastadd2().."
-    implementation project(':IntraJ')
-    implementation files('IntraJ/tools/magpiebridge-0.1.6-SNAPSHOT-jar-with-dependencies.jar')
-    implementation 'com.sun.net.httpserver:http:20070405'
-    implementation group: 'org.freemarker', name: 'freemarker', version: '2.3.29'
+    jastadd2 name: "jastadd2"
   }
 }
 
-compileJava.dependsOn ':IntraJ:build'
+dependencies{
+    testImplementation 'junit:junit:4.12'
+    implementation 'junit:junit:4.12'
+    implementation files('tools/magpiebridge-0.1.6-SNAPSHOT-jar-with-dependencies.jar')
+    implementation 'com.sun.net.httpserver:http:20070405'
+    implementation group: 'org.freemarker', name: 'freemarker', version: '2.3.29'
+}
+
+sourceSets.test{
+  java{
+    srcDir 'src/java/test/'
+  }
+}
+
+test {
+   useJUnit()
+
+
+  dependsOn 'cleanTest'
+}
 
 task infoflow(type: Jar) { 
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
@@ -63,9 +92,15 @@ task infoflow(type: Jar) {
 }
 
 
-// artifacts {
-//   archives infoflow
-// }
+artifacts {
+  archives infoflow
+}
+
+//jar.manifest.attributes 'Main-Class': 'org.extendj.JavaCompiler'
+jar.destinationDirectory = projectDir
+
+// Java -source and -target version.
+sourceCompatibility = targetCompatibility = '1.8'
 
 task sourceZip(type: Zip) {
   description 'Builds a Zip file with the entire repisotory (including the IntraJ submodule).'

@@ -1,2 +1,6 @@
+pluginManagement {
+  plugins {
+    id 'org.jastadd' version '1.13.3'
+  }
+}
 rootProject.name = 'infoflow'
-include ':IntraJ'
