@@ -73,7 +73,7 @@ import org.extendj.flow.utils.Utils;
 /**
  * Perform static semantic checks on a Java program.
  */
-public class IntraJ extends Frontend {
+public class InfoFlow extends Frontend {
 
   public enum FlowProfiling { BACKWARD, FORWARD, COLLECTION, NONE, ALL }
   private static Boolean pred = false;
@@ -88,7 +88,7 @@ public class IntraJ extends Frontend {
   private static long totalTime = 0;
 
   public static Analysis analysis = Analysis.getAnalysisInstance();
-  public static IntraJ intraj;
+  public static InfoFlow intraj;
 
   private static String[] setEnv(String[] args) throws FileNotFoundException {
     if (args.length < 1) {
@@ -163,7 +163,7 @@ public class IntraJ extends Frontend {
       throws FileNotFoundException, InterruptedException, IOException {
     String[] jCheckerArgs = setEnv(args);
  
-      IntraJ intraj = getInstance();
+      InfoFlow intraj = getInstance();
       intraj.program = new Program();
       DrAST_root_node = intraj.getEntryPoint();
       int exitCode = intraj.run(jCheckerArgs);
@@ -216,7 +216,7 @@ public class IntraJ extends Frontend {
   /**
    * Initialize the Java checker.
    */
-  public IntraJ() { super("IntraJ", ExtendJVersion.getVersion()); }
+  public InfoFlow() { super("IntraJ", ExtendJVersion.getVersion()); }
 
   /**
    * @param args command-line arguments
@@ -321,9 +321,9 @@ public class IntraJ extends Frontend {
   /**
    * @return the active IntraJ instance
    */
-  public static IntraJ getInstance() {
+  public static InfoFlow getInstance() {
     if (intraj == null) {
-      intraj = new IntraJ();
+      intraj = new InfoFlow();
     }
     return intraj;
   }
