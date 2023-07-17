@@ -1,0 +1,43 @@
+aspect ImplicitFlow {
+
+    coll TreeSet<Warning> CompilationUnit.INFOFLOW()[new TreeSet<Warning>()] with add
+      root CompilationUnit;
+
+    // Checks if annotated label is LOWER than the Assigned values Label.
+    syn boolean AssignExpr.unsafeAssignment() {
+        Variable var = getDest().varDecl();
+        LabelDomain oldLabel = var.annotatedFlowLabel();
+        LabelDomain newLabel = flowLabels().get(var);
+        return newLabel.isHigherThan(oldLabel);
+    }
+
+    AssignExpr contributes warning(
+        getCompilationUnit().pathName(),
+        "Unsafe Implicit assignment: Flow from High to Low",
+        Analysis.AvailableAnalysis.INFOFLOW, null, null)
+        when unsafeAssignment()
+        to CompilationUnit.INFOFLOW();
+
+    syn boolean Declarator.unsafeDeclaration() {
+        if (hasFlowLabel() && hasInit()) {
+            LabelDomain label = annotatedFlowLabel();
+            LabelDomain newLabel = getInit().flowLabel();
+            return newLabel.isHigherThan(label);
+        }
+        return false;
+    }  
+
+    Declarator contributes warning(
+        getCompilationUnit().pathName(),
+        "Unsafe declaration: Flow from High to Low",
+        Analysis.AvailableAnalysis.INFOFLOW, null, null)
+        when unsafeDeclaration()
+        to CompilationUnit.INFOFLOW();
+
+    // AssignExpr contributes warning(
+    //     getCompilationUnit().pathName(),
+    //     "Unsafe assignment in IF-Flow: Flow from High to Low",
+    //     Analysis.AvailableAnalysis.INFOFLOW, null, null)
+    //     when unsafePCAssignment()
+    //     to CompilationUnit.INFOFLOW();
+}

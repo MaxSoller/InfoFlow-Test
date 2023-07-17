@@ -1,0 +1,50 @@
+import src.java.flow.utils.LabelDomain;
+
+aspect AnnotatedLabels {
+
+    /****************************************************************************
+    ******************************* Annotation **********************************
+    ****************************************************************************/
+
+    syn Annotation Variable.labelAnnotation() {
+        // TODO: Lookup is hard-coded for development -> Change to package 
+        TypeDecl t = getModifiers().lookupType("", "InfoFlowLabel");
+        // TypeDecl t = getModifiers().lookupType("org.extendj.flow.utils", "InfoFlowLabel");
+        Annotation a = getModifiers().annotation(t);
+        return a;
+    }
+
+    syn LabelDomain Variable.annotatedFlowLabel() {
+        Annotation a = labelAnnotation();
+        if (a != null) {
+            ElementConstantValue value = (ElementConstantValue) a.elementValueFor("label");
+            Dot d = (Dot) value.getExpr();
+            VarAccess e = (VarAccess) d.getRight();
+            String label = e.name();
+            return getLabelDomain(label); 
+        }
+        return LabelDomain.UNLABELED;
+    }
+
+    public LabelDomain Variable.getLabelDomain(String label) {
+        if (label.equals("LOW")) return LabelDomain.LOW;
+        if (label.equals("HIGH")) return LabelDomain.HIGH;
+        return LabelDomain.UNLABELED;
+    }
+
+    /***************************************************************************
+    ********************************* HELPERS **********************************
+    ***************************************************************************/
+
+    syn boolean Variable.isLowSecurity() = annotatedFlowLabel() == LabelDomain.LOW;
+    syn boolean Variable.isHighSecurity() = annotatedFlowLabel() == LabelDomain.HIGH;
+
+    syn boolean Expr.isLowSecurity() = true;
+    syn boolean Expr.isHighSecurity() = false;
+    eq VarAccess.isLowSecurity() = varDecl().isLowSecurity();
+    eq VarAccess.isHighSecurity() =  varDecl().isHighSecurity();
+ 
+    eq Binary.isLowSecurity() = getLeftOperand().isLowSecurity() && getRightOperand().isLowSecurity();
+    eq Binary.isHighSecurity() = getLeftOperand().isHighSecurity() || getRightOperand().isHighSecurity(); 
+
+}

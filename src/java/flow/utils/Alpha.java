@@ -28,14 +28,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.extendj.flow.utils;
+package src.java.flow.utils;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.extendj.ast.Variable;
 import org.extendj.ast.CFGNode;
-import org.extendj.flow.utils.LabelDomain;
 
 public class Alpha extends HashMap<Variable, LabelDomain> {
 

@@ -1,4 +1,4 @@
-package org.extendj.flow.utils;
+package src.java.flow.utils;
 
 public enum LabelDomain { 
     ERROR(-1),

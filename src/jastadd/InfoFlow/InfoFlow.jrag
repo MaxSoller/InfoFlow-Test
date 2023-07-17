@@ -1,0 +1,187 @@
+import src.java.flow.utils.Alpha;  
+import src.java.flow.utils.LabelDomain;
+import java.util.ArrayList; 
+
+/*
+Ex:
+    x = 0;          \\ pc = {x}
+    if (b)          \\ pc = {b}
+        x = 1;      \\ pc = {b}
+
+Implicit flows are controlled in Jif by associating a static program-counter label 
+{pc} with every statement and expression; the program-counter label represents the
+information that might be learned from the knowledge that the statement or expression 
+was evaluated. The label of an expression is always at least as restrictive as the 
+program-counter label at the point of evaluation. Assume the initial {pc} in this 
+example is the least restrictive label possible, { }. Then, inside the statement 
+conditioned on b, both {pc} and the label of the expression “1” are equal to {b}. 
+At the assignment to x, the straightforward assignment rule of Section 3.3 enforces 
+the desired requirement: $b% v $x%.
+*/
+
+aspect InfoFlowPC {
+    
+    /***************************************************************************
+    *************************** IF-STMT ****************************************
+    ****************************************************************************/
+
+    inh boolean Expr.isInIfBlock();
+    eq CompilationUnit.getChild().isInIfBlock() = false;
+    eq IfStmt.getChild().isInIfBlock() = true;          
+
+    syn boolean AssignExpr.unsafeIfAssignment() {
+        if (!isInIfBlock()) return false;
+        
+        Variable var = getDest().varDecl();
+        LabelDomain oldLabel = var.annotatedFlowLabel();
+        LabelDomain newLabel = flowLabels().get(var);
+        return newLabel.isHigherThan(oldLabel);
+    }
+
+    /**************************************************************************
+    ************************** Label check ************************************
+    ***************************************************************************
+    */
+    
+    syn LabelDomain CFGNode.flowLabelPC() = LabelDomain.UNLABELED;
+    eq Literal.flowLabelPC() = LabelDomain.LITERAL;
+
+    eq VarAccess.flowLabelPC() = varDecl().hasFlowLabel() 
+                                ? varDecl().annotatedFlowLabel() 
+                                : LabelDomain.UNLABELED;
+
+    eq VariableDeclarator.flowLabelPC() = hasFlowLabel() 
+                                        ? annotatedFlowLabel()
+                                        : LabelDomain.UNLABELED;
+    
+    eq FieldDeclarator.flowLabelPC() = hasFlowLabel() 
+                                    ? annotatedFlowLabel()
+                                    : LabelDomain.UNLABELED;
+   
+    // This doesn't work (?)
+    // eq Declarator.flowLabelPC() = hasFlowLabel() 
+    //                                  ? annotatedFlowLabel()
+    //                                  : LabelDomain.UNLABELED;
+    
+    
+
+    /**************************************************************************
+    ************************** PC Transfer Function ***************************
+    ***************************************************************************
+    */
+
+    syn LabelDomain CFGNode.pcFun(LabelDomain pc) {
+        LabelDomain label = flowLabelPC();
+        switch(pc) {
+            case HIGH: 
+                return LabelDomain.HIGH;
+            case LOW: 
+                // If label for curr Node = HIGH -> Return High otherwise PC
+                return label == LabelDomain.HIGH ? label : pc;    
+            case UNLABELED: 
+                return label;
+            default:
+                return LabelDomain.UNLABELED;                           
+        }
+    }
+    
+    // For Literals -> Return prev pc
+    eq Literal.pcFun(LabelDomain pc) = pc;
+
+    /**************************************************************************
+    ************************** PC IMPLICIT FLOW *******************************
+    **************************************************************************/
+    
+    eq Entry.pc() = LabelDomain.UNLABELED;
+    syn LabelDomain CFGNode.pc() {
+        ArrayList<LabelDomain> labels = new ArrayList<>();
+        for (CFGNode e : pred()) {
+            LabelDomain prev = e.pc();
+            labels.add(pcFun(prev));
+        }   
+        // TODO: Need more checks
+        return labels.isEmpty() ? LabelDomain.ERROR : labels.get(labels.size() - 1);
+    }
+    
+
+
+
+    
+    /***************************************************************************
+    *************************** HELPERS ****************************************
+    ****************************************************************************/
+
+    syn boolean Variable.hasFlowLabel() = annotatedFlowLabel() != LabelDomain.UNLABELED;
+
+}
+
+aspect InfoFlowRelabel {
+
+    /***************************************************************************
+    ****************************** Relabels ************************************
+    ***************************************************************************/
+
+    syn Alpha CFGNode.flowLabelsFun(Alpha alpha) {return alpha;}
+    
+    eq AssignExpr.flowLabelsFun(Alpha alpha) {
+        alpha.join(getDest().varDecl(), getSource().flowLabel());
+        return alpha;
+    }
+
+    eq VariableDeclarator.flowLabelsFun(Alpha alpha) {
+        LabelDomain label = LabelDomain.UNLABELED;
+        if (annotatedFlowLabel() != LabelDomain.UNLABELED) {
+            label = annotatedFlowLabel();
+        }
+        else if (hasInit()) {
+            label = getInit().flowLabel();
+        }
+        alpha.join(this, label);
+        return alpha;
+    }
+
+    eq FieldDeclarator.flowLabelsFun(Alpha alpha) {
+        LabelDomain label = LabelDomain.UNLABELED;
+        if (annotatedFlowLabel() != LabelDomain.UNLABELED) {
+            label = annotatedFlowLabel();
+        }
+        else if (hasInit()) {
+            label = getInit().flowLabel();
+        }
+        alpha.join(this, label);
+        return alpha;
+    }
+
+
+    eq Entry.flowLabels() {return new Alpha();}
+    syn Alpha CFGNode.flowLabels() {
+        Alpha res = new Alpha();
+        for (CFGNode e: pred()) {
+            res.join(flowLabelsFun(res));
+            res.join(e.flowLabels());
+        }
+        return res;
+    }
+
+    /***************************************************************************
+    ***************************** Implicit Flow Labels *************************
+    ***************************************************************************/
+
+    syn LabelDomain Variable.flowLabel() = flowLabels().get(this);
+    syn LabelDomain Expr.flowLabel() = LabelDomain.UNLABELED;
+    eq Literal.flowLabel() = LabelDomain.LITERAL;
+    eq Binary.flowLabel() = binaryRelabel(getLeftOperand().flowLabel(), getRightOperand().flowLabel()); 
+    eq VarAccess.flowLabel() = flowLabels().get(varDecl());
+
+    /***************************************************************************
+    ******************************* HELPERS ************************************
+    ***************************************************************************/
+
+    public LabelDomain Binary.binaryRelabel(LabelDomain left, LabelDomain right) {
+        return left.isHigherThan(right) ? left : right;
+    }
+
+
+
+
+}
