@@ -13,7 +13,6 @@ jastadd {
   configureModuleBuild()
 
   modules {
-    include("IntraJ/extendj/jastadd_modules") // Include core ExtendJ modules.
     include("jastadd_modules/intraj_modules") // Include core IntraJ modules.
     
     module "infoflow", { 
@@ -88,9 +87,9 @@ task infoflow(type: Jar) {
     }
     from sourceSets.main.output
     manifest {
-        attributes 'Main-Class': 'org.extendj.IntraJ'
+        attributes 'Main-Class': 'org.extendj.InfoFlow'
     }
-    baseName = 'intraj'
+    baseName = 'InfoFlow'
     destinationDir= file('.')
 }
 

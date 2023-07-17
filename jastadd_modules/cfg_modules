@@ -3,7 +3,6 @@ module("IntraCFG") {
 	moduleVariant "frontend"
 
 	imports "java8 frontend"
-	imports "java8 backend"
 
 	java {
 		basedir "../IntraJ/src/java/"
