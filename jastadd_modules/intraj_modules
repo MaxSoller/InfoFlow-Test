@@ -1,4 +1,3 @@
-include("../IntraJ/extendj/jastadd_modules")
 include("cfg_modules")
 include("java4_modules")
 include("java5_modules")
