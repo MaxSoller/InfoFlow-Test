@@ -24,11 +24,9 @@ the template repository.
 
 To manually clone or update IntraJ, use these commands:
 
-    cd IntraJ
-    git submodule init
-    git submodule update
+    git submodule update --init --recursive<>
 
-This downloads the ExtendJ Git repository into a subdirectory named `extendj`.
+This downloads the IntraJ Git repository into a subdirectory named `IntraJ`.
 
 
 ## Build and Run
