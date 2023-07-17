@@ -4,9 +4,15 @@ module("IntraJ java5 frontend") {
 
 	imports "IntraJ java4 frontend"
 
+	java {
+		basedir "../IntraJ/src/java/"
+		include "**/*.java"
+	}
+
 	jastadd {
-		basedir "../IntraJ/src/jastadd/CFG/java5"
-        include "*.jrag"
-        include "*.ast"
+		basedir "../IntraJ/src/jastadd/CFG/"
+        include "java5/*.ast"
+        include "java5/*.jadd"
+        include "java5/*.jrag"
 	}
 }

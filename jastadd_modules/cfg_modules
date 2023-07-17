@@ -3,10 +3,17 @@ module("IntraCFG") {
 	moduleVariant "frontend"
 
 	imports "java8 frontend"
+	imports "java8 backend"
+
+	java {
+		basedir "../IntraJ/src/java/"
+		include "**/*.java"
+	}
 
 	jastadd {
-		basedir "../IntraJ/src/jastadd/CFG/IntraCFG/"
-		include "*.ast"
-		include "*.jrag"
+		basedir "../IntraJ/src/jastadd/CFG/"
+		include "IntraCFG/*.ast"
+        include "IntraCFG/*.jadd"
+        include "IntraCFG/*.jrag"
 	}
 }

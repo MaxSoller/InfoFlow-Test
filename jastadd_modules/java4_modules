@@ -2,11 +2,17 @@ module("IntraJ java4 frontend") {
 	moduleName "IntraJ Java SE 4"
 	moduleVariant "frontend"
 
-	imports "IntraCFG"
+	imports "IntraJ analysis"
+
+	java {
+		basedir "../IntraJ/src/java/"
+		include "**/*.java"
+	}
 
 	jastadd {
-		basedir "../IntraJ/src/jastadd/CFG/java4"
-        include "*.jrag"
-        include "*.ast"
+		basedir "../IntraJ/src/jastadd/CFG/"
+        include "java4/*.ast"
+        include "java4/*.jadd"
+        include "java4/*.jrag"
 	}
 }
