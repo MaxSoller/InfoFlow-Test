@@ -17,7 +17,7 @@ jastadd {
     include("jastadd_modules/intraj_modules") // Include core IntraJ modules.
     
     module "infoflow", { 
-      imports "IntraJ java8 frontend" // IntraJ dependency for infoflow module.
+      imports "IntraJ" // IntraJ dependency for infoflow module.
       jastadd {
         basedir "src/jastadd/"
         include "**/*.ast"
